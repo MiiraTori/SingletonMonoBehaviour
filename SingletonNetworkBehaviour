@@ -1,0 +1,64 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using Unity.Netcode;
+using UnityEngine;
+
+public abstract class SingletonNetworkBehaviour<T> : NetworkBehaviour where T : NetworkBehaviour
+{
+    private static T instance;
+    public static T Instance
+    {
+        get
+        {
+            if (instance == null)
+            {
+                Type t = typeof(T);
+
+                instance = (T)FindObjectOfType(t);
+                if (instance == null)
+                {
+                    SetupInstance();
+                }
+            }
+
+            return instance;
+        }
+    }
+
+    virtual protected void Awake()
+    {
+        RemoveDuplicates();
+    }
+
+    private static void SetupInstance()
+    {
+        instance = (T)FindObjectOfType(typeof(T));
+
+        if (instance == null)
+        {
+            GameObject gameObj = new GameObject();
+            gameObj.name = typeof(T).Name;
+            instance = gameObj.AddComponent<T>();
+            var netobj =gameObj.AddComponent<NetworkObject>();
+            netobj.Spawn();
+        }
+    }
+
+    private void RemoveDuplicates()
+    {
+        if (instance == null)
+        {
+            if (instance == null)
+            {
+                instance = this as T;
+            }
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
+}
+
